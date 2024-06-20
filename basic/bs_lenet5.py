@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import torch.optim as optim
 from datetime import datetime
 
-RESULTS = os.path.join(os.getcwd(), "results", "LENET5")
+RESULTS = os.path.join(os.getcwd(), "results", "BS-LENET5")
 
 epochs = 50
 batch_size_train = 64
@@ -39,7 +39,7 @@ class BSActicvation(Function):
     def backward(ctx: torch.Any, grad_output: torch.Any) -> torch.Any:
         input, = ctx.saved_tensors
         sigmoid_input = input.sigmoid()
-        result = grad_output * (sigmoid_input * (1 - sigmoid_input)).bernoulli()
+        result = grad_output.sgn() * (sigmoid_input * (1 - sigmoid_input)).bernoulli()
         # print(result)
         return result
 
@@ -188,7 +188,7 @@ def main():
     os.makedirs(RESULTS, exist_ok=True)
     criterion = nn.CrossEntropyLoss()
     model = Lenet5()
-    optimizer = optim.SGD(model.parameters(), lr=learning_rate, momentum=momentum)
+    optimizer = optim.Adam(model.parameters(), lr=0.0001)
 
     model, optimizer, _ = training_loop(model, criterion, optimizer, data_train, data_test, epochs)
 

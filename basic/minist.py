@@ -12,7 +12,9 @@ from matplotlib import pyplot as plt
 from torch import mode, nn
 import torch.optim as optim
 
-RESULTS = os.path.join(os.getcwd(), "results", "LENET5")
+USE_SIGMOID = False
+RESULTS = os.path.join(os.getcwd(), "results", "LENET5-SIGMOID" if USE_SIGMOID else "LENET5")
+
 
 epochs = 50
 batch_size_train = 64
@@ -52,19 +54,19 @@ class Lenet(nn.Module):
         self.block1 = nn.Sequential(
             # - out_channels: 卷积核的个数
             nn.Conv2d(in_channels=1, out_channels=6, kernel_size=5, stride=1, padding=2), # 输出6*28*28
-            nn.Tanh(),
+            nn.Sigmoid() if USE_SIGMOID else nn.Tanh(),
             nn.MaxPool2d(kernel_size=2, stride=2), # 输出6*14*14
             nn.Conv2d(in_channels=6, out_channels=16, kernel_size=5, stride=1), # 输出16*10*10
-            nn.Tanh(),
+            nn.Sigmoid() if USE_SIGMOID else nn.Tanh(),
             nn.MaxPool2d(kernel_size=2, stride=2), # 输出16*5*5
-            nn.Tanh()
+            nn.Sigmoid() if USE_SIGMOID else nn.Tanh()
         )
         # 全连接层
         self.block2 = nn.Sequential(
             nn.Linear(16*5*5, 120),
-            nn.Tanh(),
+            nn.Sigmoid() if USE_SIGMOID else nn.Tanh(),
             nn.Linear(120, 84),
-            nn.Tanh(),
+            nn.Sigmoid() if USE_SIGMOID else nn.Tanh(),
             nn.Linear(84, 10)
         )
 
@@ -174,7 +176,7 @@ def main():
     os.makedirs(RESULTS, exist_ok=True)
     criterion = nn.CrossEntropyLoss()
     model = Lenet()
-    optimizer = optim.SGD(model.parameters(), lr=learning_rate, momentum=momentum)
+    optimizer = optim.Adam(model.parameters(), lr=0.0001)
 
     model, optimizer, _ = training_loop(model, criterion, optimizer, data_train, data_test, epochs)
 
